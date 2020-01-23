@@ -3,10 +3,10 @@
 namespace Tests\Extensions\Airline;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\Airline\AirlineAirport;
 
-class AirlineAirportTest extends PHPUnit_Framework_TestCase
+class AirlineAirportTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

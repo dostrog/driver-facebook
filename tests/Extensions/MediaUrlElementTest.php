@@ -3,11 +3,11 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\ElementButton;
 use BotMan\Drivers\Facebook\Extensions\MediaUrlElement;
 
-class MediaUrlElementTest extends PHPUnit_Framework_TestCase
+class MediaUrlElementTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

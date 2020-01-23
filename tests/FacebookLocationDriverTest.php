@@ -4,13 +4,13 @@ namespace Tests\Drivers;
 
 use Mockery as m;
 use BotMan\BotMan\Http\Curl;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use BotMan\BotMan\Messages\Attachments\Location;
 use BotMan\Drivers\Facebook\FacebookLocationDriver;
 use BotMan\BotMan\Messages\Incoming\IncomingMessage;
 
-class FacebookLocationDriverTest extends PHPUnit_Framework_TestCase
+class FacebookLocationDriverTest extends TestCase
 {
     /**
      * Get correct Facebook request data for location.

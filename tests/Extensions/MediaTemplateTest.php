@@ -3,11 +3,11 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\MediaTemplate;
 use BotMan\Drivers\Facebook\Extensions\MediaAttachmentElement;
 
-class MediaTemplateTest extends PHPUnit_Framework_TestCase
+class MediaTemplateTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

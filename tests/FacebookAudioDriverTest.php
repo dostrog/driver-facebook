@@ -4,12 +4,12 @@ namespace BotMan\BotMan\tests\Drivers;
 
 use Mockery as m;
 use BotMan\BotMan\Http\Curl;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use BotMan\Drivers\Facebook\FacebookAudioDriver;
 use BotMan\BotMan\Messages\Incoming\IncomingMessage;
 
-class FacebookAudioDriverTest extends PHPUnit_Framework_TestCase
+class FacebookAudioDriverTest extends TestCase
 {
     /**
      * Get correct Facebook request data for audio.

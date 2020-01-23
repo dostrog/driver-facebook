@@ -1,5 +1,9 @@
 .idea/
+.vscode
 .DS_Store
 composer.lock
 .php_cs.cache
+.phpunit.result.cache
+.env
+.env.production
 /vendor/

@@ -3,10 +3,10 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\ReceiptElement;
 
-class ReceiptElementTest extends PHPUnit_Framework_TestCase
+class ReceiptElementTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

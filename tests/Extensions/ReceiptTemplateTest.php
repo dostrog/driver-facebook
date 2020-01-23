@@ -3,14 +3,14 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\ReceiptAddress;
 use BotMan\Drivers\Facebook\Extensions\ReceiptElement;
 use BotMan\Drivers\Facebook\Extensions\ReceiptSummary;
 use BotMan\Drivers\Facebook\Extensions\ReceiptTemplate;
 use BotMan\Drivers\Facebook\Extensions\ReceiptAdjustment;
 
-class ReceiptTemplateTest extends PHPUnit_Framework_TestCase
+class ReceiptTemplateTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

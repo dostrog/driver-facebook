@@ -3,11 +3,11 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\ElementButton;
 use BotMan\Drivers\Facebook\Extensions\ButtonTemplate;
 
-class ButtonTemplateTest extends PHPUnit_Framework_TestCase
+class ButtonTemplateTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()

@@ -32,10 +32,10 @@
     ],
     "require-dev": {
         "botman/studio-addons": "~1.0",
-        "phpunit/phpunit": "~5.0",
         "illuminate/contracts": "~5.5.0",
         "mockery/mockery": "dev-master",
-        "ext-curl": "*"
+        "ext-curl": "*",
+        "phpunit/phpunit": "^8.5"
     },
     "autoload": {
         "psr-4": {

@@ -3,14 +3,14 @@
 namespace Tests\Extensions;
 
 use Illuminate\Support\Arr;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use BotMan\Drivers\Facebook\Extensions\Airline\AirlineAirport;
 use BotMan\Drivers\Facebook\Extensions\Airline\AirlineFlightInfo;
 use BotMan\Drivers\Facebook\Extensions\Airline\AirlineBoardingPass;
 use BotMan\Drivers\Facebook\Extensions\AirlineBoardingPassTemplate;
 use BotMan\Drivers\Facebook\Extensions\Airline\AirlineFlightSchedule;
 
-class AirlineBoardingPassTemplateTest extends PHPUnit_Framework_TestCase
+class AirlineBoardingPassTemplateTest extends TestCase
 {
     /** @test */
     public function it_can_be_created()
