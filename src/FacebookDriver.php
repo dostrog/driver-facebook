@@ -76,7 +76,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
     /** @var DriverEventInterface */
     protected $driverEvent;
 
-    protected $facebookProfileEndpoint = 'https://graph.facebook.com/v3.0/';
+    protected $facebookProfileEndpoint = 'https://graph.facebook.com/v5.0/';
 
     /** @var bool If the incoming request is a FB postback */
     protected $isPostback = false;
@@ -89,7 +89,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
     public function buildPayload(Request $request)
     {
         $this->payload = new ParameterBag((array) json_decode($request->getContent(), true));
-        $this->event = Collection::make((array) $this->payload->get('entry')[0]);
+        $this->event = Collection::make((array) $this->payload->get('entry', [null])[0]);
         $this->signature = $request->headers->get('X_HUB_SIGNATURE', '');
         $this->content = $request->getContent();
         $this->config = Collection::make($this->config->get('facebook', []));
@@ -407,7 +407,12 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      */
     public function sendPayload($payload)
     {
-        $response = $this->http->post($this->facebookProfileEndpoint.'me/messages', [], $payload);
+        // $response = $this->http->post($this->facebookProfileEndpoint.'me/messages', [], $payload);
+        $response = $this->http->post(
+            $this->facebookProfileEndpoint . 'me/messages',
+            ['access_token' => $this->config->get('token')],
+            $payload
+        );
         $this->throwExceptionIfResponseNotOk($response);
 
         return $response;
