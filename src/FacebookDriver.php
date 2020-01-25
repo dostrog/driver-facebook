@@ -112,6 +112,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param Request $request
+     *
      * @return null|Response
      */
     public function verifyRequest(Request $request)
@@ -149,17 +150,21 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param array $eventData
+     *
      * @return DriverEventInterface
      */
     protected function getEventFromEventData(array $eventData)
     {
-        $name = Collection::make($eventData)->except([
-            'sender',
-            'recipient',
-            'timestamp',
-            'message',
-            'postback',
-        ])->keys()->first();
+        $name = Collection::make($eventData)->except(
+            [
+                'sender',
+                'recipient',
+                'timestamp',
+                'message',
+                'postback',
+            ]
+        )->keys()->first();
+
         switch ($name) {
             case 'referral':
                 return new MessagingReferrals($eventData);
@@ -193,12 +198,15 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      */
     protected function validateSignature()
     {
-        return hash_equals($this->signature,
-            'sha1='.hash_hmac('sha1', $this->content, $this->config->get('app_secret')));
+        return hash_equals(
+            $this->signature,
+            'sha1=' . hash_hmac('sha1', $this->content, $this->config->get('app_secret'))
+        );
     }
 
     /**
      * @param IncomingMessage $matchingMessage
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function markSeen(IncomingMessage $matchingMessage)
@@ -219,6 +227,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param IncomingMessage $matchingMessage
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function types(IncomingMessage $matchingMessage)
@@ -239,15 +248,22 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param  IncomingMessage $message
+     *
      * @return Answer
      */
     public function getConversationAnswer(IncomingMessage $message)
     {
         $payload = $message->getPayload();
         if (isset($payload['message']['quick_reply'])) {
-            return Answer::create($payload['message']['text'])->setMessage($message)->setInteractiveReply(true)->setValue($payload['message']['quick_reply']['payload']);
+            return Answer::create($payload['message']['text'])
+                ->setMessage($message)
+                ->setInteractiveReply(true)
+                ->setValue($payload['message']['quick_reply']['payload']);
         } elseif (isset($payload['postback']['payload'])) {
-            return Answer::create($payload['postback']['title'])->setMessage($message)->setInteractiveReply(true)->setValue($payload['postback']['payload']);
+            return Answer::create($payload['postback']['title'])
+                ->setMessage($message)
+                ->setInteractiveReply(true)
+                ->setValue($payload['postback']['payload']);
         }
 
         return Answer::create($message->getText())->setMessage($message);
@@ -273,26 +289,27 @@ class FacebookDriver extends HttpDriver implements VerifiesService
     protected function loadMessages()
     {
         $messages = Collection::make($this->event->get('messaging'));
-        $messages = $messages->transform(function ($msg) {
-            $message = new IncomingMessage('', $this->getMessageSender($msg), $this->getMessageRecipient($msg), $msg);
-            if (isset($msg['message']['text']) && ! isset($msg['message']['quick_reply']['payload'])) {
-                $message->setText($msg['message']['text']);
+        $messages = $messages->transform(
+            function ($msg) {
+                $message = new IncomingMessage('', $this->getMessageSender($msg), $this->getMessageRecipient($msg), $msg);
+                if (isset($msg['message']['text']) && ! isset($msg['message']['quick_reply']['payload'])) {
+                    $message->setText($msg['message']['text']);
 
-                if (isset($msg['message']['nlp'])) {
-                    $message->addExtras('nlp', $msg['message']['nlp']);
+                    if (isset($msg['message']['nlp'])) {
+                        $message->addExtras('nlp', $msg['message']['nlp']);
+                    }
+                } elseif (isset($msg['postback']['payload'])) {
+                    $this->isPostback = true;
+
+                    $message->setText($msg['postback']['payload']);
+                } elseif (isset($msg['message']['quick_reply']['payload'])) {
+                    $this->isPostback = true;
+
+                    $message->setText($msg['message']['quick_reply']['payload']);
                 }
-            } elseif (isset($msg['postback']['payload'])) {
-                $this->isPostback = true;
-
-                $message->setText($msg['postback']['payload']);
-            } elseif (isset($msg['message']['quick_reply']['payload'])) {
-                $this->isPostback = true;
-
-                $message->setText($msg['message']['quick_reply']['payload']);
+                return $message;
             }
-
-            return $message;
-        })->toArray();
+        )->toArray();
 
         if (count($messages) === 0) {
             $messages = [new IncomingMessage('', '', '')];
@@ -325,6 +342,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      * quick reply response object.
      *
      * @param Question $question
+     *
      * @return array
      */
     private function convertQuestion(Question $question)
@@ -353,8 +371,9 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param string|Question|IncomingMessage $message
-     * @param IncomingMessage $matchingMessage
-     * @param array $additionalParameters
+     * @param IncomingMessage                 $matchingMessage
+     * @param array                           $additionalParameters
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function buildServicePayload($message, $matchingMessage, $additionalParameters = [])
@@ -369,13 +388,16 @@ class FacebookDriver extends HttpDriver implements VerifiesService
         } else {
             $recipient = ['id' => $matchingMessage->getSender()];
         }
-        $parameters = array_merge_recursive([
-            'messaging_type' => self::TYPE_RESPONSE,
-            'recipient' => $recipient,
-            'message' => [
-                'text' => $message,
+        $parameters = array_merge_recursive(
+            [
+                'messaging_type' => self::TYPE_RESPONSE,
+                'recipient' => $recipient,
+                'message' => [
+                    'text' => $message,
+                ],
             ],
-        ], $additionalParameters);
+            $additionalParameters
+        );
         /*
          * If we send a Question with buttons, ignore
          * the text and append the question.
@@ -406,6 +428,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param mixed $payload
+     *
      * @return Response
      * @throws FacebookException
      */
@@ -433,8 +456,9 @@ class FacebookDriver extends HttpDriver implements VerifiesService
     /**
      * Retrieve specific User field information.
      *
-     * @param array $fields
+     * @param array           $fields
      * @param IncomingMessage $matchingMessage
+     *
      * @return User
      * @throws FacebookException
      */
@@ -448,7 +472,12 @@ class FacebookDriver extends HttpDriver implements VerifiesService
         if (isset($messagingDetails['sender']['community'])) {
             $fields = 'first_name,last_name,email,title,department,employee_number,primary_phone,primary_address,picture,link,locale,name,name_format,updated_time';
         }
-        $userInfoData = $this->http->get($this->facebookProfileEndpoint.$matchingMessage->getSender().'?fields='.$fields.'&access_token='.$this->config->get('token'));
+        $userInfoData = $this->http->get(
+            $this->facebookProfileEndpoint .
+            $matchingMessage->getSender() .
+            '?fields=' . $fields .
+            '&access_token=' . $this->config->get('token')
+        );
         $this->throwExceptionIfResponseNotOk($userInfoData);
         $userInfo = json_decode($userInfoData->getContent(), true);
         $firstName = $userInfo['first_name'] ?? null;
@@ -461,7 +490,9 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      * Retrieve User information.
      *
      * @param IncomingMessage $matchingMessage
+     *
      * @return User
+     *
      * @throws FacebookException
      */
     public function getUser(IncomingMessage $matchingMessage)
@@ -477,7 +508,11 @@ class FacebookDriver extends HttpDriver implements VerifiesService
             $fields = 'first_name,last_name,email,title,department,employee_number,primary_phone,primary_address,picture,link,locale,name,name_format,updated_time';
         }
 
-        $userInfoData = $this->http->get($this->facebookProfileEndpoint.$matchingMessage->getSender().'?fields='.$fields.'&access_token='.$this->config->get('token'));
+        $userInfoData = $this->http->get(
+            $this->facebookProfileEndpoint .
+            $matchingMessage->getSender() .
+            '?fields=' . $fields . '&access_token=' . $this->config->get('token')
+        );
 
         $this->throwExceptionIfResponseNotOk($userInfoData);
         $userInfo = json_decode($userInfoData->getContent(), true);
@@ -491,9 +526,10 @@ class FacebookDriver extends HttpDriver implements VerifiesService
     /**
      * Low-level method to perform driver specific API requests.
      *
-     * @param string $endpoint
-     * @param array $parameters
+     * @param string          $endpoint
+     * @param array           $parameters
      * @param IncomingMessage $matchingMessage
+     *
      * @return Response
      */
     public function sendRequest($endpoint, array $parameters, IncomingMessage $matchingMessage)
@@ -519,19 +555,22 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param Response $facebookResponse
+     *
      * @return mixed
+     *
      * @throws FacebookException
      */
     protected function throwExceptionIfResponseNotOk(Response $facebookResponse)
     {
         if ($facebookResponse->getStatusCode() !== 200) {
             $responseData = json_decode($facebookResponse->getContent(), true);
-            throw new FacebookException('Error sending payload: '.$responseData['error']['message']);
+            throw new FacebookException('Error sending payload: ' . $responseData['error']['message']);
         }
     }
 
     /**
      * @param $msg
+     *
      * @return string|null
      */
     protected function getMessageSender($msg)
@@ -545,6 +584,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
 
     /**
      * @param $msg
+     *
      * @return string|null
      */
     protected function getMessageRecipient($msg)
@@ -559,6 +599,7 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      *
      * @param IncomingMessage $message
      * @param $bot
+     *
      * @return Response
      */
     public function handover(IncomingMessage $message, $bot)
