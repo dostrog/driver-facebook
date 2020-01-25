@@ -10,6 +10,7 @@ use BotMan\BotMan\Messages\Attachments\File;
 use BotMan\BotMan\Messages\Attachments\Audio;
 use BotMan\BotMan\Messages\Attachments\Image;
 use BotMan\BotMan\Messages\Outgoing\Question;
+use BotMan\BotMan\Messages\Outgoing\OutgoingMessage;
 use BotMan\BotMan\Drivers\Events\GenericEvent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,13 +29,12 @@ class FacebookDriverTest extends TestCase
 {
     public function tearDown(): void
     {
-        // parent::tearDown();
         m::close();
     }
 
     private function getRequest($responseData)
     {
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
+        $request = m::mock(Request::class . '[getContent]');
         $request->shouldReceive('getContent')->andReturn($responseData);
 
         return $request;
@@ -327,15 +327,14 @@ class FacebookDriverTest extends TestCase
 
         $htmlInterface = m::mock(Curl::class);
         $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'text' => 'Test',
-                ],
-                'access_token' => 'Foo'
-            ])->andReturn($response);
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
+            ],
+            'message' => [
+                'text' => 'Test',
+            ],
+        ])->andReturn($response);
 
         // $request = m::mock(Request::class.'[getContent]');
         $request = m::mock(Request::class);
@@ -385,34 +384,35 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_NnF5xxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
         $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'text' => 'Test',
-                ],
-                'access_token' => 'Foo',
-                'custom' => 'payload',
-            ])->andReturn(new Response());
-
-        $request = m::mock(Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
             ],
-        ], $htmlInterface);
+            'message' => [
+                'text' => 'Test',
+            ],
+            'custom' => 'payload',
+        ])->andReturn($response);
+
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
         $driverResponse = $driver->sendPayload($driver->buildServicePayload('Test', $message, [
             'custom' => 'payload',
         ]));
 
-        var_dump($driverResponse);
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -429,7 +429,6 @@ class FacebookDriverTest extends TestCase
             'message' => [
                 'text' => 'Test',
             ],
-            'access_token' => 'Foo',
         ])->andReturn(new Response('{"error": {"message": "Error."}}', 400));
 
         $request = m::mock(Request::class . '[getContent]');
@@ -446,14 +445,7 @@ class FacebookDriverTest extends TestCase
     /** @test */
     public function it_returns_answer_from_interactive_messages()
     {
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode([]));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], m::mock(Curl::class));
+        $driver = $this->getDriver('{}');
 
         $message = new IncomingMessage('Red', '0987654321', '1234567890', [
             'sender' => [
@@ -478,14 +470,7 @@ class FacebookDriverTest extends TestCase
     /** @test */
     public function it_returns_answer_from_regular_messages()
     {
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode([]));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], m::mock(Curl::class));
+        $driver = $this->getDriver('{}');
 
         $message = new IncomingMessage('Red', '0987654321', '1234567890', [
             'sender' => [
@@ -508,43 +493,46 @@ class FacebookDriverTest extends TestCase
     {
         $question = Question::create('How are you doing?')->addButton(Button::create('Great')->value('great'))->addButton(Button::create('Good')->value('good'));
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'text' => 'How are you doing?',
-                    'quick_replies' => [
-                        [
-                            'content_type' => 'text',
-                            'title' => 'Great',
-                            'payload' => 'great',
-                            'image_url' => null,
-                        ],
-                        [
-                            'content_type' => 'text',
-                            'title' => 'Good',
-                            'payload' => 'good',
-                            'image_url' => null,
-                        ],
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
+            ],
+            'message' => [
+                'text' => 'How are you doing?',
+                'quick_replies' => [
+                    [
+                        'content_type' => 'text',
+                        'title' => 'Great',
+                        'payload' => 'great',
+                        'image_url' => null,
+                    ],
+                    [
+                        'content_type' => 'text',
+                        'title' => 'Good',
+                        'payload' => 'good',
+                        'image_url' => null,
                     ],
                 ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
-
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn('[]');
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
             ],
-        ], $htmlInterface);
+        ])->andReturn($response);
+
+        $driver = $this->getDriver('{}', null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload($question, $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload($question, $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -552,8 +540,13 @@ class FacebookDriverTest extends TestCase
     {
         $question = Question::create('How are you doing?')->addButton(Button::create('Great')->value('great')->additionalParameters(['foo' => 'bar']))->addButton(Button::create('Good')->value('good'));
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
                 'messaging_type' => 'RESPONSE',
                 'recipient' => [
                     'id' => '1234567890',
@@ -576,20 +569,18 @@ class FacebookDriverTest extends TestCase
                         ],
                     ],
                 ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
+            ])->andReturn($response);
 
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn('[]');
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], $htmlInterface);
+        $driver = $this->getDriver('{}', null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload($question, $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload($question, $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -600,8 +591,13 @@ class FacebookDriverTest extends TestCase
             ->addAction(QuickReplyButton::create()->type('location'))
             ->addAction(QuickReplyButton::create()->type('user_phone_number'));
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -620,36 +616,39 @@ class FacebookDriverTest extends TestCase
                     ],
                 ],
             ],
-            'access_token' => 'Foo',
-        ])->andReturn(new Response());
+        ])->andReturn($response);
 
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn('[]');
+        // $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
+        // $request->shouldReceive('getContent')->andReturn('[]');
 
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], $htmlInterface);
+        // $driver = new FacebookDriver($request, [
+        //     'facebook' => [
+        //         'token' => 'Foo',
+        //     ],
+        // ], $htmlInterface);
+
+        $driver = $this->getDriver('{}', null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload($question, $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload($question, $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
     public function it_is_configured()
     {
-        $request = m::mock(Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn('');
-        $htmlInterface = m::mock(Curl::class);
-
         $config = [
             'facebook' => [
                 'token' => 'Foo',
                 'app_secret' => 'Bar',
             ],
         ];
-        $driver = new FacebookDriver($request, $config, $htmlInterface);
+        $driver = $this->getDriver('{}', $config);
 
         $this->assertTrue($driver->isConfigured());
 
@@ -659,11 +658,11 @@ class FacebookDriverTest extends TestCase
                 'app_secret' => 'Bar',
             ],
         ];
-        $driver = new FacebookDriver($request, $config, $htmlInterface);
+        $driver = $this->getDriver('{}', $config);
 
         $this->assertFalse($driver->isConfigured());
 
-        $driver = new FacebookDriver($request, [], $htmlInterface);
+        $driver = $this->getDriver('{}', []);
 
         $this->assertFalse($driver->isConfigured());
     }
@@ -692,30 +691,32 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'text' => 'Test',
-                ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
-
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
             ],
-        ], $htmlInterface);
+            'message' => [
+                'text' => 'Test',
+            ],
+        ])->andReturn($response);
+
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload(\BotMan\BotMan\Messages\Outgoing\OutgoingMessage::create('Test'),
-            $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload(OutgoingMessage::create('Test'), $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -742,36 +743,39 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'attachment' => [
-                        'type' => 'image',
-                        'payload' => [
-                            'is_reusable' => false,
-                            'url' => 'http://image.url//foo.png',
-                        ],
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
+            ],
+            'message' => [
+                'attachment' => [
+                    'type' => 'image',
+                    'payload' => [
+                        'is_reusable' => false,
+                        'url' => 'http://image.url//foo.png',
                     ],
                 ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
-
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
             ],
-        ], $htmlInterface);
+        ])->andReturn($response);
+
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload(\BotMan\BotMan\Messages\Outgoing\OutgoingMessage::create('Test',
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload(OutgoingMessage::create('Test',
             Image::url('http://image.url//foo.png')), $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -798,36 +802,39 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
-                'messaging_type' => 'RESPONSE',
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'message' => [
-                    'attachment' => [
-                        'type' => 'audio',
-                        'payload' => [
-                            'is_reusable' => false,
-                            'url' => 'http://image.url//foo.mp3',
-                        ],
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+            'messaging_type' => 'RESPONSE',
+            'recipient' => [
+                'id' => '1234567890',
+            ],
+            'message' => [
+                'attachment' => [
+                    'type' => 'audio',
+                    'payload' => [
+                        'is_reusable' => false,
+                        'url' => 'http://image.url//foo.mp3',
                     ],
                 ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
-
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
             ],
-        ], $htmlInterface);
+        ])->andReturn($response);
+
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload(\BotMan\BotMan\Messages\Outgoing\OutgoingMessage::create('Test',
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload(OutgoingMessage::create('Test',
             Audio::url('http://image.url//foo.mp3')), $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -854,8 +861,13 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
                 'messaging_type' => 'RESPONSE',
                 'recipient' => [
                     'id' => '1234567890',
@@ -869,21 +881,19 @@ class FacebookDriverTest extends TestCase
                         ],
                     ],
                 ],
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
+            ])->andReturn($response);
 
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], $htmlInterface);
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->sendPayload($driver->buildServicePayload(\BotMan\BotMan\Messages\Outgoing\OutgoingMessage::create('Test',
-            File::url('http://image.url//foo.pdf')), $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload(OutgoingMessage::create('Test',
+        File::url('http://image.url//foo.pdf')), $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -910,8 +920,13 @@ class FacebookDriverTest extends TestCase
             ],
         ];
 
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -925,23 +940,22 @@ class FacebookDriverTest extends TestCase
                     ],
                 ],
             ],
-            'access_token' => 'Foo',
-        ])->andReturn(new Response());
+        ])->andReturn($response);
 
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn(json_encode($responseData));
 
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
-            ],
-        ], $htmlInterface);
+        $driver = $this->getDriver(json_encode($responseData), null, '', $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
         $file = File::url('http://image.url//foo.pdf');
         $file->addExtras('is_reusable', true);
 
-        $driver->sendPayload($driver->buildServicePayload(\BotMan\BotMan\Messages\Outgoing\OutgoingMessage::create('Test', $file), $message));
+        $driverResponse = $driver->sendPayload($driver->buildServicePayload(OutgoingMessage::create('Test', $file), $message));
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
@@ -1046,26 +1060,29 @@ class FacebookDriverTest extends TestCase
     /** @test */
     public function it_can_reply_mark_seen_sender_action()
     {
+        $response = new Response();
+        $response->headers->set('Content-Type', 'application/json; charset=UTF-8');
+        $response->setContent('{"recipient_id":"1234567890","message_id":"m_Nnxxxxx"}');
+        $response->setStatusCode(Response::HTTP_OK);
+
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', [], [
-                'recipient' => [
-                    'id' => '1234567890',
-                ],
-                'sender_action' => 'mark_seen',
-                'access_token' => 'Foo',
-            ])->andReturn(new Response());
-
-        $request = m::mock(\Symfony\Component\HttpFoundation\Request::class.'[getContent]');
-        $request->shouldReceive('getContent')->andReturn('[]');
-
-        $driver = new FacebookDriver($request, [
-            'facebook' => [
-                'token' => 'Foo',
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+            'recipient' => [
+                'id' => '1234567890',
             ],
-        ], $htmlInterface);
+            'sender_action' => 'mark_seen',
+        ])->andReturn($response);
+
+        $driver = $this->getDriver('{}', null, [], $htmlInterface);
 
         $message = new IncomingMessage('', '1234567890', '');
-        $driver->markSeen($message);
+        $driverResponse = $driver->markSeen($message);
+
+        $this->assertEquals(200, $driverResponse->getStatusCode());
+        $this->assertEquals(
+            '1234567890',
+            json_decode($driverResponse->getContent())->recipient_id
+        );
     }
 
     /** @test */
