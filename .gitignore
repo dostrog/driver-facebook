@@ -1,5 +1,5 @@
 .idea/
-.vscode
+.vscode/
 .DS_Store
 composer.lock
 .php_cs.cache
@@ -7,3 +7,4 @@ composer.lock
 .env
 .env.production
 /vendor/
+.discovery/
