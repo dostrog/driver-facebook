@@ -207,11 +207,14 @@ class FacebookDriver extends HttpDriver implements VerifiesService
             'recipient' => [
                 'id' => $matchingMessage->getSender(),
             ],
-            'access_token' => $this->config->get('token'),
             'sender_action' => 'mark_seen',
         ];
 
-        return $this->http->post($this->facebookProfileEndpoint.'me/messages', [], $parameters);
+        return $this->http->post(
+            $this->facebookProfileEndpoint . 'me/messages',
+            ['access_token' => $this->config->get('token')],
+            $parameters
+        );
     }
 
     /**
@@ -224,11 +227,14 @@ class FacebookDriver extends HttpDriver implements VerifiesService
             'recipient' => [
                 'id' => $matchingMessage->getSender(),
             ],
-            'access_token' => $this->config->get('token'),
             'sender_action' => 'typing_on',
         ];
 
-        return $this->http->post($this->facebookProfileEndpoint.'me/messages', [], $parameters);
+        return $this->http->post(
+            $this->facebookProfileEndpoint . 'me/messages',
+            ['access_token' => $this->config->get('token')],
+            $parameters
+        );
     }
 
     /**
@@ -395,8 +401,6 @@ class FacebookDriver extends HttpDriver implements VerifiesService
             }
         }
 
-        $parameters['access_token'] = $this->config->get('token');
-
         return $parameters;
     }
 
@@ -494,11 +498,15 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      */
     public function sendRequest($endpoint, array $parameters, IncomingMessage $matchingMessage)
     {
-        $parameters = array_replace_recursive([
-            'access_token' => $this->config->get('token'),
-        ], $parameters);
+        // $parameters = array_replace_recursive([
+        //     'access_token' => $this->config->get('token'),
+        // ], $parameters);
 
-        return $this->http->post($this->facebookProfileEndpoint.$endpoint, [], $parameters);
+        return $this->http->post(
+            $this->facebookProfileEndpoint . $endpoint,
+            ['access_token' => $this->config->get('token')],
+            $parameters
+        );
     }
 
     /**
@@ -555,11 +563,15 @@ class FacebookDriver extends HttpDriver implements VerifiesService
      */
     public function handover(IncomingMessage $message, $bot)
     {
-        return $this->http->post($this->facebookProfileEndpoint.'me/pass_thread_control?access_token='.$this->config->get('token'), [], [
-            'recipient' => [
-                'id' => $message->getSender(),
-            ],
-            'target_app_id' => self::HANDOVER_INBOX_PAGE_ID,
-        ]);
+        return $this->http->post(
+            $this->facebookProfileEndpoint . 'me/pass_thread_control',
+            ['access_token' => $this->config->get('token')],
+            [
+                'recipient' => [
+                    'id' => $message->getSender(),
+                ],
+                'target_app_id' => self::HANDOVER_INBOX_PAGE_ID,
+            ]
+        );
     }
 }
