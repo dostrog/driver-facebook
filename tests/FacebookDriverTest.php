@@ -141,7 +141,7 @@ class FacebookDriverTest extends TestCase
 
         $extras = $message->getExtras('nlp');
 
-        $this->assertFalse(is_null($extras));
+        $this->assertNotNull($extras);
         $this->assertSame('true', $extras['entities']['bye'][0]['value']);
     }
 
