@@ -204,7 +204,7 @@ class FacebookDriverTest extends TestCase
         $facebookResponse = '{"first_name":"John","last_name":"Doe","profile_pic":"https://facebook.com/profilepic","locale":"en_US","timezone":2,"gender":"male","is_payment_enabled":true}';
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('get')->once()->with('https://graph.facebook.com/v5.0/1433960459967306?fields=name,first_name,last_name,profile_pic&access_token=Foo')->andReturn(new Response($facebookResponse));
+        $htmlInterface->shouldReceive('get')->once()->with('https://graph.facebook.com/v6.0/1433960459967306?fields=name,first_name,last_name,profile_pic&access_token=Foo')->andReturn(new Response($facebookResponse));
 
         $driver = $this->getDriver($request, null, '', $htmlInterface);
         $message = $driver->getMessages()[0];
@@ -229,7 +229,7 @@ class FacebookDriverTest extends TestCase
         $request = '{"object":"page","entry":[{"id":"111899832631525","time":1480279487271,"messaging":[{"sender":{"id":"1433960459967306"},"recipient":{"id":"111899832631525"},"timestamp":1480279487147,"message":{"mid":"mid.1480279487147:4388d3b344","seq":36,"text":"Hi Julia"}}]}]}';
         $facebookResponse = '{"first_name":"John"}';
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('get')->once()->with('https://graph.facebook.com/v5.0/1433960459967306?fields=first_name&access_token=Foo')->andReturn(new Response($facebookResponse));
+        $htmlInterface->shouldReceive('get')->once()->with('https://graph.facebook.com/v6.0/1433960459967306?fields=first_name&access_token=Foo')->andReturn(new Response($facebookResponse));
         $driver = $this->getDriver($request, null, '', $htmlInterface);
         $message = $driver->getMessages()[0];
         $user = $driver->getUserWithFields(['first_name'], $message);
@@ -253,7 +253,7 @@ class FacebookDriverTest extends TestCase
         $htmlInterface
             ->shouldReceive('get')
             ->once()
-            ->with('https://graph.facebook.com/v5.0/1433960459967306?fields=name,first_name,last_name,profile_pic&access_token=Foo')
+            ->with('https://graph.facebook.com/v6.0/1433960459967306?fields=name,first_name,last_name,profile_pic&access_token=Foo')
             ->andReturn($response);
 
         $driver = $this->getDriver($responseData, null, '', $htmlInterface);
@@ -326,7 +326,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -390,7 +390,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -421,7 +421,7 @@ class FacebookDriverTest extends TestCase
         $request = '{"object":"page","entry":[{"id":"111899832631525","time":1480279487271,"messaging":[{"sender":{"id":"1433960459967306"},"recipient":{"id":"111899832631525"},"timestamp":1480279487147,"message":{"mid":"mid.1480279487147:4388d3b344","seq":36,"text":"Hi Julia"}}]}]}';
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -499,7 +499,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -546,7 +546,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
                 'messaging_type' => 'RESPONSE',
                 'recipient' => [
                     'id' => '1234567890',
@@ -597,7 +597,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -697,7 +697,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -749,7 +749,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -808,7 +808,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -867,7 +867,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
                 'messaging_type' => 'RESPONSE',
                 'recipient' => [
                     'id' => '1234567890',
@@ -926,7 +926,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'messaging_type' => 'RESPONSE',
             'recipient' => [
                 'id' => '1234567890',
@@ -1066,7 +1066,7 @@ class FacebookDriverTest extends TestCase
         $response->setStatusCode(Response::HTTP_OK);
 
         $htmlInterface = m::mock(Curl::class);
-        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v5.0/me/messages', ['access_token' => 'Foo'], [
+        $htmlInterface->shouldReceive('post')->once()->with('https://graph.facebook.com/v6.0/me/messages', ['access_token' => 'Foo'], [
             'recipient' => [
                 'id' => '1234567890',
             ],
