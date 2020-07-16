@@ -44,7 +44,15 @@ class WhitelistDomains extends Command
      */
     public function handle()
     {
-        $payload = config('botman.facebook.whitelisted_domains');
+        $env = $this->option('env') ?? config('app.env');
+        $domains_config = (in_array($env, ["local", "development"]))
+            ? 'botman.facebook.whitelisted_domains_local'
+            : 'botman.facebook.whitelisted_domains';
+
+        $this->info("Using domains list from config: {$domains_config}");
+        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 10) . "...");
+
+        $payload = config($domains_config);
 
         if (! $payload) {
             $this->error('You need to add a Facebook whitelist to your BotMan Facebook config in facebook.php.');

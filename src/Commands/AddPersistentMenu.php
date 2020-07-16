@@ -44,7 +44,15 @@ class AddPersistentMenu extends Command
      */
     public function handle()
     {
-        $payload = ['persistent_menu' => config('botman.facebook.persistent_menu')];
+        $env = $this->option('env') ?? config('app.env');
+        $menu_config = (in_array($env, ["local", "development"]))
+            ? 'botman.facebook.persistent_menu_local'
+            : 'botman.facebook.persistent_menu';
+
+        $this->info("Using menu from config: {$menu_config}");
+        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 10) . "...");
+
+        $payload = ['persistent_menu' => config($menu_config)];
 
         if (! $payload) {
             $this->error('You need to add a Facebook menu payload data to your BotMan Facebook config in facebook.php.');
