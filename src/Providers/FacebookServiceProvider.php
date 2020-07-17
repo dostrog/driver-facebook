@@ -15,6 +15,7 @@ use BotMan\Drivers\Facebook\FacebookLocationDriver;
 use BotMan\Drivers\Facebook\Commands\AddGreetingText;
 use BotMan\Drivers\Facebook\Commands\WhitelistDomains;
 use BotMan\Drivers\Facebook\Commands\AddPersistentMenu;
+use BotMan\Drivers\Facebook\Commands\GetSettings;
 use BotMan\Drivers\Facebook\Commands\AddStartButtonPayload;
 
 class FacebookServiceProvider extends ServiceProvider
@@ -40,6 +41,7 @@ class FacebookServiceProvider extends ServiceProvider
                     Nlp::class,
                     AddGreetingText::class,
                     AddPersistentMenu::class,
+                    GetSettings::class,
                     AddStartButtonPayload::class,
                     WhitelistDomains::class,
                 ]);

@@ -59,8 +59,12 @@ class AddPersistentMenu extends Command
             exit;
         }
 
-        $response = $this->http->post('https://graph.facebook.com/v3.0/me/messenger_profile?access_token='.config('botman.facebook.token'),
-            [], $payload);
+        $response = $this->http->post(
+            'https://graph.facebook.com/v7.0/me/messenger_profile?access_token='.config('botman.facebook.token'),
+            [],
+            $payload,
+            ["Content-Type" => "application/json"]
+        );
 
         $responseObject = json_decode($response->getContent());
 
