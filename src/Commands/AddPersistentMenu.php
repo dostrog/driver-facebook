@@ -44,14 +44,7 @@ class AddPersistentMenu extends Command
      */
     public function handle()
     {
-        $env = $this->option('env') ?? config('app.env');
-        $menu_config = (in_array($env, ["local", "development"]))
-            ? 'botman.facebook.persistent_menu_local'
-            : 'botman.facebook.persistent_menu';
-
-        $this->info("Using menu from config: {$menu_config}");
-        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 10) . "...");
-
+        $menu_config = 'botman.facebook.persistent_menu';
         $payload = ['persistent_menu' => config($menu_config)];
 
         if (! $payload) {
@@ -59,8 +52,13 @@ class AddPersistentMenu extends Command
             exit;
         }
 
+        $this->info("Bot config: " . (env('FACEBOOK_BOT_NAME') ?? '[no key FACEBOOK_BOT_NAME in env]'));
+        $this->info("Using menu from config: {$menu_config}");
+        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 40) . "...");
+        $this->info("Using app_id: " . config('botman.facebook.app_id'));
+
         $response = $this->http->post(
-            'https://graph.facebook.com/v7.0/me/messenger_profile?access_token='.config('botman.facebook.token'),
+            config('botman.facebook.graph_url') . 'me/messenger_profile?access_token=' . config('botman.facebook.token'),
             [],
             $payload,
             ["Content-Type" => "application/json"]

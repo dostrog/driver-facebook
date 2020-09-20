@@ -44,10 +44,12 @@ class GetSettings extends Command
      */
     public function handle()
     {
-        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 10) . "...");
+        $this->info("Bot config: " . (env('FACEBOOK_BOT_NAME') ?? '[no key FACEBOOK_BOT_NAME in env]'));
+        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 40) . "...");
+        $this->info("Using app_id: " . config('botman.facebook.app_id'));
 
         $response = $this->http->get(
-            'https://graph.facebook.com/v7.0/me/messenger_profile?fields=get_started,ice_breakers,persistent_menu,whitelisted_domains,greeting&access_token='.config('botman.facebook.token')
+            config('botman.facebook.graph_url') . 'me/messenger_profile?fields=get_started,ice_breakers,persistent_menu,whitelisted_domains,greeting&access_token=' . config('botman.facebook.token')
         );
 
         $responseObject = json_decode($response->getContent());

@@ -44,13 +44,7 @@ class WhitelistDomains extends Command
      */
     public function handle()
     {
-        $env = $this->option('env') ?? config('app.env');
-        $domains_config = (in_array($env, ["local", "development"]))
-            ? 'botman.facebook.whitelisted_domains_local'
-            : 'botman.facebook.whitelisted_domains';
-
-        $this->info("Using domains list from config: {$domains_config}");
-        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 10) . "...");
+        $domains_config = 'botman.facebook.whitelisted_domains';
 
         $payload = config($domains_config);
 
@@ -59,7 +53,13 @@ class WhitelistDomains extends Command
             exit;
         }
 
-        $response = $this->http->post('https://graph.facebook.com/v3.0/me/messenger_profile?access_token='.config('botman.facebook.token'),
+        $this->info("Bot config: " . (env('FACEBOOK_BOT_NAME') ?? '[no key FACEBOOK_BOT_NAME in env]'));
+        $this->info("Using domains list from config: {$domains_config} " . implode(', ', $payload));
+        $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 40) . "...");
+        $this->info("Using app_id: " . config('botman.facebook.app_id'));
+
+        $response = $this->http->post(
+            config('botman.facebook.graph_url') . 'me/messenger_profile?access_token='.config('botman.facebook.token'),
             [], ['whitelisted_domains' => $payload]);
 
         $responseObject = json_decode($response->getContent());
