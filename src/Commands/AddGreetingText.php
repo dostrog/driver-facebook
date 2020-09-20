@@ -52,7 +52,7 @@ class AddGreetingText extends Command
         }
 
         $this->info("Bot config: " . (env('FACEBOOK_BOT_NAME') ?? '[no key FACEBOOK_BOT_NAME in env]'));
-        $this->info("Using greeting_text from config: " . $payload);
+        $this->info("Using greeting_text from config: 'botman.facebook.greeting_text'");
         $this->info("Using access_token: " . substr(config('botman.facebook.token'), 0, 40) . "...");
         $this->info("Using app_id: " . config('botman.facebook.app_id'));
 
