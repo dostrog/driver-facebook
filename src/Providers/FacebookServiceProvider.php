@@ -2,6 +2,7 @@
 
 namespace BotMan\Drivers\Facebook\Providers;
 
+use BotMan\Drivers\Facebook\Commands\RemovePersistentMenu;
 use Illuminate\Support\ServiceProvider;
 use BotMan\BotMan\Drivers\DriverManager;
 use BotMan\Drivers\Facebook\Commands\Nlp;
@@ -41,6 +42,7 @@ class FacebookServiceProvider extends ServiceProvider
                     Nlp::class,
                     AddGreetingText::class,
                     AddPersistentMenu::class,
+                    RemovePersistentMenu::class,
                     GetSettings::class,
                     AddStartButtonPayload::class,
                     WhitelistDomains::class,
