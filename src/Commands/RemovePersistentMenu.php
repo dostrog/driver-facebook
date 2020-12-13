@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace BotMan\Drivers\Facebook\Commands;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
 use GuzzleHttp\Client;
 
@@ -25,7 +26,7 @@ class RemovePersistentMenu extends Command
     /**
      * @var Client
      */
-    private $http;
+    private Client $http;
 
     /**
      * Create a new command instance.
@@ -42,6 +43,7 @@ class RemovePersistentMenu extends Command
      * Execute the console command.
      *
      * @return void
+     * @throws GuzzleException
      */
     public function handle()
     {
@@ -53,16 +55,8 @@ class RemovePersistentMenu extends Command
 
         $response = $this->http->delete(
             config('botman.facebook.graph_url') . 'me/messenger_profile?access_token=' . config('botman.facebook.token'),
-            $payload
+            ['json' => $payload]
         );
-//        ->post(
-//            config('botman.facebook.graph_url') . 'me/messenger_profile?access_token=' . config('botman.facebook.token'),
-//            [],
-//            $payload,
-//            ["Content-Type" => "application/json"]
-//        );
-
-//        $responseObject = json_decode($response->getBody()-> get getContent());
 
         if ($response->getStatusCode() === 200) {
             $this->info('Facebook menu has been deleted.');
